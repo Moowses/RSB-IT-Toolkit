@@ -1,0 +1,16 @@
+name: test
+on: [push, pull_request]
+jobs:
+  pester-and-lint:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install test tooling
+        shell: pwsh
+        run: Install-Module Pester -Force -Scope CurrentUser -MinimumVersion 5.0; Install-Module PSScriptAnalyzer -Force -Scope CurrentUser
+      - name: Run Pester
+        shell: pwsh
+        run: Invoke-Pester ./tests -CI
+      - name: Analyze scripts
+        shell: pwsh
+        run: Invoke-ScriptAnalyzer -Path . -Recurse -Severity Error

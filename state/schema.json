@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RSB IT Toolkit transaction state",
+  "type": "object",
+  "required": ["TransactionId", "Status", "CreatedUtc", "Employee", "Steps"],
+  "properties": {
+    "TransactionId": { "type": "string" },
+    "Status": { "enum": ["Preflight", "BackedUp", "Applying", "Verified", "Succeeded", "RollingBack", "RolledBack", "RollbackFailed", "Failed"] },
+    "Employee": { "type": "object" },
+    "Steps": { "type": "array" },
+    "PolicyBackupPath": { "type": "string" }
+  }
+}

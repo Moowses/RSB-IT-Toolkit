@@ -1,0 +1,9 @@
+[
+  { "id": "preflight", "title": "Preflight Only", "mutating": false },
+  { "id": "baseline", "title": "Apply Branch Security Baseline", "mutating": true },
+  { "id": "undo", "title": "Undo Branch Security Baseline", "mutating": true },
+  { "id": "time", "title": "Windows Time Repair", "mutating": true },
+  { "id": "network", "title": "Network Repair", "mutating": true },
+  { "id": "spooler", "title": "Print Spooler Repair", "mutating": true },
+  { "id": "dism", "title": "DISM / SFC Repair", "mutating": true }
+]

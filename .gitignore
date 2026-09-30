@@ -1,0 +1,5 @@
+dist/
+*.sdb
+*.tmp
+*.log
+TestResults.xml

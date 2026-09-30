@@ -1,0 +1,9 @@
+{
+  "recoveryAdminName": "RSB IT Admin",
+  "recoveryAdminDescription": "Rose Bakeshop IT Administrative Account",
+  "userGroupSid": "S-1-5-32-545",
+  "administratorsGroupSid": "S-1-5-32-544",
+  "localServiceSid": "S-1-5-19",
+  "timeRights": ["SeSystemtimePrivilege", "SeTimeZonePrivilege"],
+  "optionalControlPanelPolicy": "NoControlPanel"
+}
