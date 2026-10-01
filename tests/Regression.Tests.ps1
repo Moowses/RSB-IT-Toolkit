@@ -47,4 +47,5 @@ Describe 'RSB IT Toolkit regression contract' {
     It 'does not serialize passwords to state' { ($stateSource -notmatch 'Password|SecureString|ConvertFrom-RSBSecureString') | Should Be $true }
     It 'uses a normal PowerShell release model rather than embedded BAT markers' { ((Get-Content (Join-Path $root 'bootstrap.ps1') -Raw) -notmatch '::.*PAYLOAD|Invoke-Expression.*marker') | Should Be $true }
     It 'explains safely when an approved release asset is not available' { ((Get-Content (Join-Path $root 'bootstrap.ps1') -Raw) -match 'No approved RSB IT Toolkit') | Should Be $true }
+    It 'resolves only published prereleases for the engineering-preview channel' { ((Get-Content (Join-Path $root 'bootstrap.ps1') -Raw) -match 'prerelease -and -not \$_.draft') | Should Be $true }
 }

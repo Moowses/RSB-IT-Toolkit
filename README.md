@@ -56,6 +56,17 @@ irm https://raw.githubusercontent.com/Moowses/rsb-it-toolkit/main/bootstrap.ps1 
 
 The bootstrap obtains a named release asset and its SHA256 manifest, verifies the digest, then starts the extracted ordinary PowerShell files. It never contains a password or token.
 
+### Engineering-preview lab channel
+
+Only for controlled Windows 10/11 lab validation—not branch deployment—the current published preview can be launched with:
+
+```powershell
+$script = irm https://raw.githubusercontent.com/Moowses/rsb-it-toolkit/main/bootstrap.ps1
+& ([scriptblock]::Create($script)) -Channel dev
+```
+
+The `dev` channel resolves the newest published GitHub pre-release, verifies its SHA256 manifest, and records the release version in its normal output. The ordinary one-line bootstrap remains reserved for an approved stable release.
+
 ## Safety model
 
 - Run **Preflight Only** before applying the baseline.

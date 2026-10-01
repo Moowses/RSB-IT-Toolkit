@@ -5,13 +5,20 @@ param(
 )
 
 $repo = 'Moowses/rsb-it-toolkit'
-$release = if ($Version) { "https://github.com/$repo/releases/download/$Version" } elseif ($Channel -eq 'stable') { "https://github.com/$repo/releases/latest/download" } else { "https://github.com/$repo/releases/download/dev" }
 $asset = 'RSB-IT-Toolkit.zip'
 $work = Join-Path $env:TEMP ("RSB-IT-Toolkit-" + [guid]::NewGuid().Guid)
 New-Item -ItemType Directory -Path $work -Force | Out-Null
 try {
-    $zip = Join-Path $work $asset; $manifest = Join-Path $work 'SHA256SUMS.txt'
     try {
+        if ($Version) { $release = "https://github.com/$repo/releases/download/$Version" }
+        elseif ($Channel -eq 'stable') { $release = "https://github.com/$repo/releases/latest/download" }
+        else {
+            $releases = Invoke-RestMethod -Uri "https://api.github.com/repos/$repo/releases?per_page=20" -Headers @{ 'User-Agent' = 'RSB-IT-Toolkit-Bootstrap' } -ErrorAction Stop
+            $preview = @($releases | Where-Object { $_.prerelease -and -not $_.draft } | Select-Object -First 1)
+            if (-not $preview) { throw 'No published engineering-preview release was found.' }
+            $release = "https://github.com/$repo/releases/download/$($preview[0].tag_name)"
+        }
+        $zip = Join-Path $work $asset; $manifest = Join-Path $work 'SHA256SUMS.txt'
         Invoke-WebRequest -Uri "$release/$asset" -OutFile $zip -UseBasicParsing -ErrorAction Stop
         Invoke-WebRequest -Uri "$release/SHA256SUMS.txt" -OutFile $manifest -UseBasicParsing -ErrorAction Stop
     } catch {

@@ -9,13 +9,20 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Install test tooling
+        shell: pwsh
+        run: Install-Module Pester -Force -Scope CurrentUser -MinimumVersion 5.0; Install-Module PSScriptAnalyzer -Force -Scope CurrentUser
+      - name: Validate release source
+        shell: pwsh
+        run: Invoke-Pester ./tests -CI; Invoke-ScriptAnalyzer -Path . -Recurse -Severity Error
       - name: Package verified release asset
         shell: pwsh
         run: ./Compile.ps1
-      - name: Publish draft release
+      - name: Publish release
         uses: softprops/action-gh-release@v2
         with:
-          draft: true
+          draft: ${{ !contains(github.ref_name, '-preview.') }}
+          prerelease: ${{ contains(github.ref_name, '-preview.') }}
           files: |
             dist/RSB-IT-Toolkit.zip
             dist/SHA256SUMS.txt
