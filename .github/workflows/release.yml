@@ -18,11 +18,12 @@ jobs:
       - name: Package verified release asset
         shell: pwsh
         run: ./Compile.ps1
-      - name: Publish release
-        uses: softprops/action-gh-release@v2
-        with:
-          draft: ${{ !contains(github.ref_name, '-preview.') }}
-          prerelease: ${{ contains(github.ref_name, '-preview.') }}
-          files: |
-            dist/RSB-IT-Toolkit.zip
-            dist/SHA256SUMS.txt
+      - name: Publish release assets
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = '${{ github.ref_name }}'
+          $arguments = @('release','create',$tag,'dist/RSB-IT-Toolkit.zip','dist/SHA256SUMS.txt','--title',$tag,'--generate-notes')
+          if ($tag -match '-preview\.') { $arguments += '--prerelease' } else { $arguments += '--draft' }
+          & gh @arguments
