@@ -31,7 +31,12 @@ try {
     $entry = Get-ChildItem -Path $work -Filter start.ps1 -Recurse | Select-Object -First 1
     if (-not $entry) { throw 'Verified artifact does not contain scripts/start.ps1.' }
     Write-Host "Starting verified RSB IT Toolkit release ($Channel)."
-    & $entry.FullName
+    # The bootstrap itself may be invoked through Invoke-Expression on a device with a restrictive policy.
+    # Run the verified extracted script in a process-scoped Bypass host rather than asking the technician to alter machine policy.
+    $powershellHost = Join-Path $env:WINDIR 'System32\WindowsPowerShell\v1.0\powershell.exe'
+    if (-not (Test-Path -LiteralPath $powershellHost)) { throw 'Windows PowerShell 5.1 was not found.' }
+    & $powershellHost -NoProfile -ExecutionPolicy Bypass -File $entry.FullName
+    if ($LASTEXITCODE -ne 0) { throw "RSB IT Toolkit exited with code $LASTEXITCODE." }
 } finally {
     # Keep downloaded evidence while process is active only; no credentials are involved.
     if (Test-Path $work) { Remove-Item -LiteralPath $work -Recurse -Force }
