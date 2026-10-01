@@ -32,6 +32,7 @@ Describe 'RSB IT Toolkit regression contract' {
         ($startSource -match 'Start-RSBNativePowerShell') | Should -BeTrue
     }
     It 'redirects a simulated 32-bit launcher on a 64-bit OS to Sysnative' { ((Get-Content (Join-Path $global:RSBITToolkitTestRoot 'functions/public/Start-RSBNativePowerShell.ps1') -Raw) -match 'Sysnative') | Should -BeTrue }
+    It 'waits for elevated/native child launch before a bootstrapper can clean temporary files' { ((Get-Content (Join-Path $global:RSBITToolkitTestRoot 'functions/public/Start-RSBNativePowerShell.ps1') -Raw) -match 'Start-Process .* -Wait') | Should -BeTrue; ((Get-Content (Join-Path $global:RSBITToolkitTestRoot 'scripts/start.ps1') -Raw) -match 'Start-Process powershell\.exe -Verb RunAs -Wait') | Should -BeTrue }
     It 'does not call ADSI SetPassword until after account commit' {
         ($adminSource.IndexOf('$account.SetInfo()') -lt $adminSource.IndexOf('$account.SetPassword($plain)')) | Should -BeTrue
     }
