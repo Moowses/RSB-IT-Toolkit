@@ -4,5 +4,6 @@ function Set-RSBTransactionStep {
 
     $step = [pscustomobject]@{ Name = $Name; Status = $Status; TimestampUtc = [DateTime]::UtcNow.ToString('o') }
     $State.Steps += $step
+    Write-RSBLog -TransactionId $State.TransactionId -Message "Transaction step '$Name' is $Status." | Out-Null
     return $step
 }

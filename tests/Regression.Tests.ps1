@@ -47,6 +47,13 @@ Describe 'RSB IT Toolkit regression contract' {
     It 'targets NoControlPanel at the employee SID hive and not elevated HKCU' { ($controlSource -match 'HKEY_USERS') | Should -BeTrue; ($controlSource -notmatch 'HKCU:') | Should -BeTrue }
     It 'requires matching password prompts in the GUI' { ((Get-Content (Join-Path $global:RSBITToolkitTestRoot 'scripts/main.ps1') -Raw) -match 'Passwords do not match') | Should -BeTrue }
     It 'loads WPF markup explicitly as UTF-8 and suppresses non-actionable module verb warnings' { $main = Get-Content (Join-Path $global:RSBITToolkitTestRoot 'scripts/main.ps1') -Raw; ($main -match 'Get-Content .* -Encoding UTF8') | Should -BeTrue; ($main -match 'Import-Module .* -DisableNameChecking') | Should -BeTrue }
+    It 'shows elapsed activity, a live log, and disables concurrent GUI actions' {
+        $main = Get-Content (Join-Path $global:RSBITToolkitTestRoot 'scripts/main.ps1') -Raw
+        $xaml = Get-Content (Join-Path $global:RSBITToolkitTestRoot 'xaml/MainWindow.xaml') -Raw
+        ($xaml -match 'ActivityCounterText') | Should -BeTrue; ($xaml -match 'ActivityLogText') | Should -BeTrue; ($xaml -match 'ActivityProgressBar') | Should -BeTrue
+        ($main -match 'Elapsed') | Should -BeTrue; ($main -match 'Write-RSBLog -Message') | Should -BeTrue; ($main -match 'foreach \(\$button in \$actionButtons\) \{ \$button.IsEnabled = \$false \}') | Should -BeTrue
+    }
+    It 'records each baseline transaction step for the live activity log' { ((Get-Content (Join-Path $global:RSBITToolkitTestRoot 'functions/private/Set-RSBTransactionStep.ps1') -Raw) -match 'Transaction step ''\$Name'' is \$Status') | Should -BeTrue }
     It 'does not serialize passwords to state' { ($stateSource -notmatch 'Password|SecureString|ConvertFrom-RSBSecureString') | Should -BeTrue }
     It 'uses a normal PowerShell release model rather than embedded BAT markers' { ((Get-Content (Join-Path $global:RSBITToolkitTestRoot 'bootstrap.ps1') -Raw) -notmatch '::.*PAYLOAD|Invoke-Expression.*marker') | Should -BeTrue }
     It 'explains safely when an approved release asset is not available' { ((Get-Content (Join-Path $global:RSBITToolkitTestRoot 'bootstrap.ps1') -Raw) -match 'No approved RSB IT Toolkit') | Should -BeTrue }
