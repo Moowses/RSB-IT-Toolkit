@@ -46,4 +46,5 @@ Describe 'RSB IT Toolkit regression contract' {
     It 'requires matching password prompts in the GUI' { ((Get-Content (Join-Path $root 'scripts/main.ps1') -Raw) -match 'Passwords do not match') | Should Be $true }
     It 'does not serialize passwords to state' { ($stateSource -notmatch 'Password|SecureString|ConvertFrom-RSBSecureString') | Should Be $true }
     It 'uses a normal PowerShell release model rather than embedded BAT markers' { ((Get-Content (Join-Path $root 'bootstrap.ps1') -Raw) -notmatch '::.*PAYLOAD|Invoke-Expression.*marker') | Should Be $true }
+    It 'explains safely when an approved release asset is not available' { ((Get-Content (Join-Path $root 'bootstrap.ps1') -Raw) -match 'No approved RSB IT Toolkit') | Should Be $true }
 }

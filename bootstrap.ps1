@@ -11,8 +11,12 @@ $work = Join-Path $env:TEMP ("RSB-IT-Toolkit-" + [guid]::NewGuid().Guid)
 New-Item -ItemType Directory -Path $work -Force | Out-Null
 try {
     $zip = Join-Path $work $asset; $manifest = Join-Path $work 'SHA256SUMS.txt'
-    Invoke-WebRequest -Uri "$release/$asset" -OutFile $zip -UseBasicParsing
-    Invoke-WebRequest -Uri "$release/SHA256SUMS.txt" -OutFile $manifest -UseBasicParsing
+    try {
+        Invoke-WebRequest -Uri "$release/$asset" -OutFile $zip -UseBasicParsing -ErrorAction Stop
+        Invoke-WebRequest -Uri "$release/SHA256SUMS.txt" -OutFile $manifest -UseBasicParsing -ErrorAction Stop
+    } catch {
+        throw "No approved RSB IT Toolkit '$Channel' release is available. Do not continue on this PC. Ask IT for an approved tagged release or use the trusted checkout runbook. Original download error: $($_.Exception.Message)"
+    }
     $expected = ((Get-Content $manifest | Where-Object { $_ -match [regex]::Escape($asset) }) -split '\s+')[0].ToLowerInvariant()
     $actual = (Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash.ToLowerInvariant()
     if (-not $expected -or $actual -ne $expected) { throw 'Release SHA256 validation failed; no toolkit files were run.' }
