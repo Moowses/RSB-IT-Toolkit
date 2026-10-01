@@ -45,13 +45,16 @@ Describe 'RSB IT Toolkit regression contract' {
     It 'attempts rollback on final verification failure' { ($baselineSource -match 'Critical final verification failed') | Should -BeTrue; ($baselineSource -match 'Restore-RSBStateBackup') | Should -BeTrue }
     It 'reports rollback failure separately' { ((Get-Content (Join-Path $global:RSBITToolkitTestRoot 'functions/public/Restore-RSBStateBackup.ps1') -Raw) -match 'RollbackFailed') | Should -BeTrue }
     It 'targets NoControlPanel at the employee SID hive and not elevated HKCU' { ($controlSource -match 'HKEY_USERS') | Should -BeTrue; ($controlSource -notmatch 'HKCU:') | Should -BeTrue }
-    It 'requires matching password prompts in the GUI' { ((Get-Content (Join-Path $global:RSBITToolkitTestRoot 'scripts/main.ps1') -Raw) -match 'Passwords do not match') | Should -BeTrue }
+    It 'acknowledges Apply immediately and uses an in-window matching password prompt' {
+        $main = Get-Content (Join-Path $global:RSBITToolkitTestRoot 'scripts/main.ps1') -Raw
+        ($main -match 'Start-RSBImmediateFeedback') | Should -BeTrue; ($main -match 'awaiting password') | Should -BeTrue; ($main -match 'PasswordBox') | Should -BeTrue; ($main -match 'The passwords do not match') | Should -BeTrue; ($main -notmatch "Read-Host 'Password for RSB IT Admin'") | Should -BeTrue
+    }
     It 'loads WPF markup explicitly as UTF-8 and suppresses non-actionable module verb warnings' { $main = Get-Content (Join-Path $global:RSBITToolkitTestRoot 'scripts/main.ps1') -Raw; ($main -match 'Get-Content .* -Encoding UTF8') | Should -BeTrue; ($main -match 'Import-Module .* -DisableNameChecking') | Should -BeTrue }
     It 'shows elapsed activity, a live log, and disables concurrent GUI actions' {
         $main = Get-Content (Join-Path $global:RSBITToolkitTestRoot 'scripts/main.ps1') -Raw
         $xaml = Get-Content (Join-Path $global:RSBITToolkitTestRoot 'xaml/MainWindow.xaml') -Raw
         ($xaml -match 'ActivityCounterText') | Should -BeTrue; ($xaml -match 'ActivityLogText') | Should -BeTrue; ($xaml -match 'ActivityProgressBar') | Should -BeTrue
-        ($main -match 'Elapsed') | Should -BeTrue; ($main -match 'Write-RSBLog -Message') | Should -BeTrue; ($main -match 'foreach \(\$button in \$actionButtons\) \{ \$button.IsEnabled = \$false \}') | Should -BeTrue
+        ($main -match 'Elapsed') | Should -BeTrue; ($main -match 'Write-RSBLog -Message') | Should -BeTrue; ($main -match 'function Set-RSBActionButtons') | Should -BeTrue; ($main -match '\$button.IsEnabled = \$Enabled') | Should -BeTrue
     }
     It 'records each baseline transaction step for the live activity log' { ((Get-Content (Join-Path $global:RSBITToolkitTestRoot 'functions/private/Set-RSBTransactionStep.ps1') -Raw) -match 'Transaction step ''\$Name'' is \$Status') | Should -BeTrue }
     It 'does not serialize passwords to state' { ($stateSource -notmatch 'Password|SecureString|ConvertFrom-RSBSecureString') | Should -BeTrue }
