@@ -2,10 +2,10 @@
 param()
 
 $root = Split-Path -Parent $PSScriptRoot
-Import-Module (Join-Path $root 'RSBITToolkit.psd1') -Force
+Import-Module (Join-Path $root 'RSBITToolkit.psd1') -Force -DisableNameChecking
 Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
 
-[xml]$xaml = Get-Content (Join-Path $root 'xaml\MainWindow.xaml') -Raw
+[xml]$xaml = Get-Content (Join-Path $root 'xaml\MainWindow.xaml') -Raw -Encoding UTF8
 $reader = New-Object Xml.XmlNodeReader $xaml
 $window = [Windows.Markup.XamlReader]::Load($reader)
 $find = { param($name) $window.FindName($name) }
@@ -35,27 +35,27 @@ function Invoke-RSBBackground([scriptblock]$Work, [object[]]$Arguments = @()) {
     $timer.Start()
 }
 
-$preflight.Add_Click({ Invoke-RSBBackground { param($moduleRoot) Import-Module "$moduleRoot\RSBITToolkit.psd1" -Force; if (-not (Test-RSBElevation)) { throw 'Run elevated.' }; $i=Get-RSBInteractiveUser; $e=Get-RSBLocalIdentity $i; Get-RSBAccountState $e } })
-$repair.Add_Click({ Invoke-RSBBackground { param($moduleRoot) Import-Module "$moduleRoot\RSBITToolkit.psd1" -Force; Repair-RSBEmployeeAccount } })
+$preflight.Add_Click({ Invoke-RSBBackground { param($moduleRoot) Import-Module "$moduleRoot\RSBITToolkit.psd1" -Force -DisableNameChecking; if (-not (Test-RSBElevation)) { throw 'Run elevated.' }; $i=Get-RSBInteractiveUser; $e=Get-RSBLocalIdentity $i; Get-RSBAccountState $e } })
+$repair.Add_Click({ Invoke-RSBBackground { param($moduleRoot) Import-Module "$moduleRoot\RSBITToolkit.psd1" -Force -DisableNameChecking; Repair-RSBEmployeeAccount } })
 $apply.Add_Click({
     $password1 = Read-Host 'Password for RSB IT Admin' -AsSecureString
     $password2 = Read-Host 'Confirm password for RSB IT Admin' -AsSecureString
     $b1 = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($password1); $b2 = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($password2)
     try { if ([Runtime.InteropServices.Marshal]::PtrToStringBSTR($b1) -cne [Runtime.InteropServices.Marshal]::PtrToStringBSTR($b2)) { throw 'Passwords do not match.' } }
     finally { [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($b1); [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($b2) }
-    Invoke-RSBBackground { param($moduleRoot,$securePassword) Import-Module "$moduleRoot\RSBITToolkit.psd1" -Force; Invoke-RSBBranchSecurityBaseline -Password $securePassword } @($password1)
+    Invoke-RSBBackground { param($moduleRoot,$securePassword) Import-Module "$moduleRoot\RSBITToolkit.psd1" -Force -DisableNameChecking; Invoke-RSBBranchSecurityBaseline -Password $securePassword } @($password1)
 })
 $undo.Add_Click({
     $stateFile = Get-ChildItem (Join-Path (Initialize-RSBPaths).State '*.json') | Sort-Object LastWriteTime -Descending | Select-Object -First 1
     if (-not $stateFile) { Set-UIResult 'No state backup found.'; return }
-    Invoke-RSBBackground { param($moduleRoot,$savedStatePath) Import-Module "$moduleRoot\RSBITToolkit.psd1" -Force; Undo-RSBBranchSecurityBaseline -StatePath $savedStatePath } @($stateFile.FullName)
+    Invoke-RSBBackground { param($moduleRoot,$savedStatePath) Import-Module "$moduleRoot\RSBITToolkit.psd1" -Force -DisableNameChecking; Undo-RSBBranchSecurityBaseline -StatePath $savedStatePath } @($stateFile.FullName)
 })
 $logs.Add_Click({ Start-Process explorer.exe (Initialize-RSBPaths).Logs })
-(& $find 'TimeRepairButton').Add_Click({ Invoke-RSBBackground { param($moduleRoot) Import-Module "$moduleRoot\RSBITToolkit.psd1" -Force; Invoke-RSBWindowsTimeRepair } })
-(& $find 'NetworkRepairButton').Add_Click({ Invoke-RSBBackground { param($moduleRoot) Import-Module "$moduleRoot\RSBITToolkit.psd1" -Force; Invoke-RSBNetworkRepair -Confirm:$false } })
-(& $find 'SpoolerRepairButton').Add_Click({ Invoke-RSBBackground { param($moduleRoot) Import-Module "$moduleRoot\RSBITToolkit.psd1" -Force; Invoke-RSBPrintSpoolerRepair } })
-(& $find 'DismRepairButton').Add_Click({ Invoke-RSBBackground { param($moduleRoot) Import-Module "$moduleRoot\RSBITToolkit.psd1" -Force; Invoke-RSBDismRepair } })
-(& $find 'AdminVerifyButton').Add_Click({ Invoke-RSBBackground { param($moduleRoot) Import-Module "$moduleRoot\RSBITToolkit.psd1" -Force; $a=Get-LocalUser -Name 'RSB IT Admin' -ErrorAction Stop; Get-RSBAccountState ([pscustomobject]@{Name=$a.Name;Sid=$a.SID.Value;Enabled=$a.Enabled;ProfilePath=$null}) } })
+(& $find 'TimeRepairButton').Add_Click({ Invoke-RSBBackground { param($moduleRoot) Import-Module "$moduleRoot\RSBITToolkit.psd1" -Force -DisableNameChecking; Invoke-RSBWindowsTimeRepair } })
+(& $find 'NetworkRepairButton').Add_Click({ Invoke-RSBBackground { param($moduleRoot) Import-Module "$moduleRoot\RSBITToolkit.psd1" -Force -DisableNameChecking; Invoke-RSBNetworkRepair -Confirm:$false } })
+(& $find 'SpoolerRepairButton').Add_Click({ Invoke-RSBBackground { param($moduleRoot) Import-Module "$moduleRoot\RSBITToolkit.psd1" -Force -DisableNameChecking; Invoke-RSBPrintSpoolerRepair } })
+(& $find 'DismRepairButton').Add_Click({ Invoke-RSBBackground { param($moduleRoot) Import-Module "$moduleRoot\RSBITToolkit.psd1" -Force -DisableNameChecking; Invoke-RSBDismRepair } })
+(& $find 'AdminVerifyButton').Add_Click({ Invoke-RSBBackground { param($moduleRoot) Import-Module "$moduleRoot\RSBITToolkit.psd1" -Force -DisableNameChecking; $a=Get-LocalUser -Name 'RSB IT Admin' -ErrorAction Stop; Get-RSBAccountState ([pscustomobject]@{Name=$a.Name;Sid=$a.SID.Value;Enabled=$a.Enabled;ProfilePath=$null}) } })
 
 $system = Get-RSBSystemInfo
 (& $find 'ComputerText').Text = "$($system.ComputerName) · $($system.DisplayName) build $($system.Build)"

@@ -46,6 +46,7 @@ Describe 'RSB IT Toolkit regression contract' {
     It 'reports rollback failure separately' { ((Get-Content (Join-Path $global:RSBITToolkitTestRoot 'functions/public/Restore-RSBStateBackup.ps1') -Raw) -match 'RollbackFailed') | Should -BeTrue }
     It 'targets NoControlPanel at the employee SID hive and not elevated HKCU' { ($controlSource -match 'HKEY_USERS') | Should -BeTrue; ($controlSource -notmatch 'HKCU:') | Should -BeTrue }
     It 'requires matching password prompts in the GUI' { ((Get-Content (Join-Path $global:RSBITToolkitTestRoot 'scripts/main.ps1') -Raw) -match 'Passwords do not match') | Should -BeTrue }
+    It 'loads WPF markup explicitly as UTF-8 and suppresses non-actionable module verb warnings' { $main = Get-Content (Join-Path $global:RSBITToolkitTestRoot 'scripts/main.ps1') -Raw; ($main -match 'Get-Content .* -Encoding UTF8') | Should -BeTrue; ($main -match 'Import-Module .* -DisableNameChecking') | Should -BeTrue }
     It 'does not serialize passwords to state' { ($stateSource -notmatch 'Password|SecureString|ConvertFrom-RSBSecureString') | Should -BeTrue }
     It 'uses a normal PowerShell release model rather than embedded BAT markers' { ((Get-Content (Join-Path $global:RSBITToolkitTestRoot 'bootstrap.ps1') -Raw) -notmatch '::.*PAYLOAD|Invoke-Expression.*marker') | Should -BeTrue }
     It 'explains safely when an approved release asset is not available' { ((Get-Content (Join-Path $global:RSBITToolkitTestRoot 'bootstrap.ps1') -Raw) -match 'No approved RSB IT Toolkit') | Should -BeTrue }
